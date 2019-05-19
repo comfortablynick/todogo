@@ -41,19 +41,14 @@ func init() {
 	au = aurora.NewAurora(*colors)
 }
 
-func main() {
-	filehandle, err := os.Open(os.ExpandEnv("$HOME/Dropbox/todo/todo.txt"))
-	defer filehandle.Close()
-	check(err)
-	log.Printf("Opened file: %s", filehandle.Name())
-
-	lines := bufio.NewScanner(filehandle)
-	lines.Split(bufio.ScanLines)
-
+func formatLines(lines *bufio.Scanner) string {
+	var b strings.Builder
+	var i uint
 	for lines.Scan() {
+		i++
+		fmt.Fprintf(&b, "%02d ", i)
 		words := bufio.NewScanner(strings.NewReader(lines.Text()))
 		words.Split(bufio.ScanWords)
-		var b strings.Builder
 		for words.Scan() {
 			chars := []rune(words.Text())
 			switch chars[0] {
@@ -65,6 +60,18 @@ func main() {
 				fmt.Fprintf(&b, "%s ", words.Text())
 			}
 		}
-		fmt.Println(b.String())
+		fmt.Fprintf(&b, "\n")
 	}
+	return b.String()
+}
+
+func main() {
+	filehandle, err := os.Open(os.ExpandEnv("$HOME/Dropbox/todo/todo.txt"))
+	defer filehandle.Close()
+	check(err)
+	log.Printf("Opened file: %s", filehandle.Name())
+
+	lines := bufio.NewScanner(filehandle)
+	lines.Split(bufio.ScanLines)
+	fmt.Print(formatLines(lines))
 }
